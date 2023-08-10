@@ -1,96 +1,61 @@
-
 $(document).ready(function() {
+  var searchFormEl = document.querySelector('#form-submit');
+  var queryURL = "https://api.openweathermap.org/data/2.5/weather?q=";
+  var weatherKey = "e90364e4c331c56af9a56244cf50c6e8";  
 
-    var searchFormEl = document.querySelector('#form-submit');
-    var queryURL = "https://api.openweathermap.org/data/2.5/weather?q="
-    var city = $('city').value;
-    var weatherKey = "e90364e4c331c56af9a56244cf50c6e8";  
+  function callAPI(queryCity){
+      var requestURL = queryURL + queryCity + "&appid=" + weatherKey;
 
-    
-    
-    function callAPI(queryCity){
-        console.log("City: ", city);
-        var requestURL = queryURL  + queryCity + "&appid=" + weatherKey;
-        console.log(requestURL);
-        var url = `https://api.openweathermap.org/data/2.5/weather?q=${queryCity}&appid=${weatherKey}`;  // using Template literals
-        console.log(url);
-        fetch(requestURL)
-         .then(function(response){
-            console.log("Response: ", response);
-            return response.json()
-         })
-         .then(function (data) {
-            console.log("Data: ", data);
-            console.log("Type: ", typeof data);
+      fetch(requestURL)
+       .then(function(response){
+          return response.json();
+       })
+       .then(function (data) {
+          var currentTemp = data.main.temp;
+          $('#temp').text(currentTemp);
 
-            console.log("Temp: ", data.main.temp);
-            var currentTemp = data.main.temp;
-            $('#temp').text(currentTemp);
+          var humidity = data.main.humidity;
+          $('#humid').text(humidity);
 
-            var humidity = data.main.humidity;
-            $('#humid').text(humidity);
+          var windSpeed = data.wind.speed;
+          $('#windy').text(windSpeed);
 
-            var windSpeed = data.wind.speed;
-            $('#windy').text(windSpeed);
-          
-            
-            for (var i = 0; i < data.length; i++) {
-              var listItem = document.createElement('li');
-              listItem.textContent = data[i].html_url;
-              repoList.appendChild(listItem);
-            }
-          })
-          
-          
-          .catch( function(error) {
-            throw error;
-          });
-         var forcastURL = `api.openweathermap.org/data/2.5/forecast?lat=${cityLat}&lon=${cityLon}&appid=${weatherKey}`;
-          console.log(forcastURL)
-          fetch(forcastURL)
-            .then(function(response){
-              return response.json()
-            })
-            .then(function(data){
-              var futTemp = data.main.temp;
-              $('.future-temp').text(futTemp);
+          // Extract latitude and longitude
+          var cityLat = data.coord.lat;
+          var cityLon = data.coord.lon;
 
-              for (var i = 0; i < data.length; i++) {
-                var listItem = document.createElement('li');
-                listItem.textContent = data[i].html_url;
-                repoList.appendChild(listItem);
+          var forecastURL = `https://api.openweathermap.org/data/2.5/forecast?lat=${cityLat}&lon=${cityLon}&appid=${weatherKey}`;
+          fetch(forecastURL)
+              .then(function(response){
+                  return response.json();
+              })
+              .then(function(data){
+                  // Loop through forecast data
+                  for (var i = 0; i < data.list.length; i++) {
+                      var futTemp = data.list[i].main.temp;
+                      // Do something with futTemp
+                  }
+              })
+              .catch(function(error) {
+                  console.error('Error fetching forecast data:', error);
+              });
+        })
+        .catch(function(error) {
+          console.error('Error fetching current weather data:', error);
+        });
+  }
 
-            }
-          })
-
-        console.log("I am code AFTER the FECTH request is initiated...")
-        console.log("Data: ", data);
-    }
-    
-    
-    function handleFormSubmit(event) {
-        event.preventDefault();
-    
-        var searchInput = document.querySelector("#city").value;
-        var searchSubmit = document.querySelector("#submit-btn").value;
-    
-        if (!searchInput) {
-            console.error("Please enter valid city")
-     
-        }
-        callAPI(searchInput);
-       
-        // var queryString = queryURL + searchSubmit + '&format=' + searchInput;
-       // location.assign(queryString);
-       // console.log(data);
-        
-    }
-    
-    searchFormEl.addEventListener("submit", handleFormSubmit);
-    
-    
-    //http://api.openweathermap.org/data/2.5/weather?q=Chicago&appid=512a107d7fc5b3c49dc4b3729ee1e54
-
-
-})
-
+  function handleFormSubmit(event) {
+      event.preventDefault();
+  
+      var searchInput = $("#city").val();
+  
+      if (!searchInput) {
+          console.error("Please enter a valid city");
+      }
+      
+      callAPI(searchInput);
+  }
+  
+  searchFormEl.addEventListener("submit", handleFormSubmit);
+});
